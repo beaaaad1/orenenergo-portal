@@ -36,14 +36,20 @@ const SupportChat = () => {
   const [newSubject, setNewSubject] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Состояния для уведомлений (красных точек)
+  const [guestLogin, setGuestLogin] = useState('');
+  const [activeGuestTicketId, setActiveGuestTicketId] = useState<number | null>(null);
+
   const [hasNewSupport, setHasNewSupport] = useState(false);
   const [hasNewPersonal, setHasNewPersonal] = useState(false);
 
-  // Реф для отслеживания количества сообщений в текущем открытом чате
   const prevMessagesCount = useRef<number>(0);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -61,33 +67,26 @@ const SupportChat = () => {
       }
     };
     fetchData();
-  }, [tab, user?.id]);
+  }, [tab, user]);
 
   useEffect(() => {
     let interval: any;
+
+    const currentTicketId = user ? selectedTicketId : activeGuestTicketId;
+
     const fetchMsgs = async () => {
       try {
         let res;
-        if (tab === 'support' && selectedTicketId) {
-          res = await api.get(`/support/tickets/${selectedTicketId}/messages`);
+        if (currentTicketId) {
+
+          res = await api.get(`/support/tickets/${currentTicketId}/messages`);
         } else if (tab === 'users' && selectedUserId) {
           res = await api.get(`/support/chats/messages/${selectedUserId}`);
         }
 
         if (res && res.data) {
           const newMessages = res.data;
-
-          // Если количество сообщений увеличилось
           if (newMessages.length > prevMessagesCount.current) {
-            const lastMsg = newMessages[newMessages.length - 1];
-
-            // Если сообщение пришло от другого человека (не от меня)
-            if (lastMsg.sender_id !== user?.id && prevMessagesCount.current !== 0) {
-              // Если мы сейчас смотрим вкладку "Сотрудники", а пришло в "Поддержку" (и наоборот)
-              if (tab === 'support' && selectedUserId) setHasNewPersonal(true);
-              if (tab === 'users' && selectedTicketId) setHasNewSupport(true);
-            }
-
             setMessages(newMessages);
             prevMessagesCount.current = newMessages.length;
           }
@@ -95,19 +94,44 @@ const SupportChat = () => {
       } catch (e) { console.error(e); }
     };
 
-    if (selectedTicketId || selectedUserId) {
+    if (currentTicketId || (user && selectedUserId)) {
       fetchMsgs();
-      interval = setInterval(fetchMsgs, 5000);
+      interval = setInterval(fetchMsgs, 4000);
     } else {
       setMessages([]);
       prevMessagesCount.current = 0;
     }
 
     return () => clearInterval(interval);
-  }, [selectedTicketId, selectedUserId, tab, user?.id]);
+  }, [selectedTicketId, selectedUserId, activeGuestTicketId, tab, user]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim()) return;
+
+    if (!user) {
+      try {
+        if (!activeGuestTicketId) {
+          if (!guestLogin.trim()) return alert("Введите логин");
+          const res = await api.post('/support/public-recovery', {
+            login: guestLogin,
+            text: inputText
+          });
+          setActiveGuestTicketId(res.data.ticketId);
+          setInputText('');
+        } else {
+
+          await api.post(`/support/tickets/${activeGuestTicketId}/messages/public`, {
+            text: inputText,
+            login: guestLogin
+          });
+          setInputText('');
+        }
+      } catch (e) {
+        alert("Ошибка связи с сервером");
+      }
+      return;
+    }
+
     try {
       let res;
       if (tab === 'support' && selectedTicketId) {
@@ -116,9 +140,8 @@ const SupportChat = () => {
         res = await api.post(`/support/chats/messages/${selectedUserId}`, { text: inputText });
       }
       if (res) {
-        const myNewMsg = res.data;
-        setMessages(prev => [...prev, myNewMsg]);
-        prevMessagesCount.current += 1; // Обновляем реф сразу, чтобы не сработало уведомление на свой текст
+        setMessages(prev => [...prev, res.data]);
+        prevMessagesCount.current += 1;
         setInputText('');
       }
     } catch (err) {
@@ -136,13 +159,76 @@ const SupportChat = () => {
     } catch (e) { alert("Ошибка создания тикета"); }
   };
 
+  if (!user) {
+    return (
+      <div className="d-flex flex-column min-vh-100 bg-light">
+        <Navbar />
+        <div className="container py-4 flex-grow-1">
+          <div className="row justify-content-center h-100">
+            <div className="col-md-8 h-100">
+              <div className="card shadow-sm border-0 d-flex flex-column" style={{ minHeight: '500px' }}>
+                {!activeGuestTicketId ? (
+                  /* ШАГ 1: ВВОД ЛОГИНА И ПРОБЛЕМЫ */
+                  <div className="m-auto p-4 text-center" style={{ maxWidth: '400px' }}>
+                    <h4 className="fw-bold mb-3">Техподдержка</h4>
+                    <p className="text-muted small mb-4">Введите ваш логин и опишите проблему, чтобы начать чат с администратором.</p>
+                    <input
+                      className="form-control mb-2 shadow-none"
+                      placeholder="Ваш логин..."
+                      value={guestLogin}
+                      onChange={e => setGuestLogin(e.target.value)}
+                    />
+                    <textarea
+                      className="form-control mb-3 shadow-none"
+                      placeholder="Что случилось?"
+                      rows={3}
+                      value={inputText}
+                      onChange={e => setInputText(e.target.value)}
+                    />
+                    <button className="btn btn-primary w-100 fw-bold" onClick={handleSendMessage}>
+                      Начать чат
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                      <h6 className="mb-0 fw-bold">Чат по восстановлению ({guestLogin})</h6>
+                      <span className="badge bg-success">Онлайн</span>
+                    </div>
+                    <div className="card-body bg-light overflow-auto p-4 d-flex flex-column gap-3" style={{ flex: 1 }}>
+                      {messages.map((m, i) => (
+                        <div key={i} className={`d-flex ${m.sender_id ? 'justify-content-start' : 'justify-content-end'}`}>
+                          <div className={`p-3 rounded-3 shadow-sm ${!m.sender_id ? 'bg-primary text-white' : 'bg-white text-dark border'}`} style={{ maxWidth: '75%' }}>
+                            <div className="fw-bold mb-1" style={{ fontSize: '0.65rem', opacity: 0.8 }}>
+                              {m.sender_id ? 'Админ' : 'Вы'}
+                            </div>
+                            <div style={{ fontSize: '0.9rem' }}>{m.text}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="card-footer bg-white p-3 border-top-0">
+                      <div className="input-group">
+                        <input className="form-control border-0 bg-light shadow-none" placeholder="Напишите ответ..." value={inputText} onChange={e => setInputText(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSendMessage()} />
+                        <button className="btn btn-primary px-4" onClick={handleSendMessage}>➤</button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
       <Navbar />
       <div className="container py-4 flex-grow-1">
         <div className="row g-3" style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
 
-          {/* ЛЕВАЯ ПАНЕЛЬ */}
           <div className="col-md-4 h-100">
             <div className="card shadow-sm border-0 h-100 d-flex flex-column">
               <div className="d-flex border-bottom text-center">
@@ -218,7 +304,6 @@ const SupportChat = () => {
             </div>
           </div>
 
-          {/* ПРАВАЯ ПАНЕЛЬ (ЧАТ) */}
           <div className="col-md-8 h-100">
             <div className="card shadow-sm border-0 h-100 d-flex flex-column">
               {(selectedTicketId || selectedUserId) ? (
