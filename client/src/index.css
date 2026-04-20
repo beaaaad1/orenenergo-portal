@@ -1,0 +1,174 @@
+:root {
+  --rosseti-blue: #0057A8;
+  --rosseti-blue-dark: #003F7A;
+  --rosseti-blue-light: #E8F0FB;
+  --rosseti-amber: #F5A623;
+  --rosseti-amber-light: #FEF4E3;
+  --rosseti-gray-bg: #F0F4F8;
+  --rosseti-gray-border: #D8E2EC;
+  --rosseti-gray-text: #6B7A8D;
+  --rosseti-dark: #1A2B3C;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--rosseti-gray-bg) !important;
+  color: var(--rosseti-dark);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Navbar */
+.navbar.bg-primary {
+  background-color: var(--rosseti-blue) !important;
+  box-shadow: 0 2px 8px rgba(0, 87, 168, 0.3);
+}
+
+/* Карточки */
+.card {
+  border: 1px solid var(--rosseti-gray-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+
+.card-header {
+  background: #fff !important;
+  border-bottom: 1px solid var(--rosseti-gray-border) !important;
+  font-weight: 500;
+  color: var(--rosseti-dark);
+  padding: 14px 18px !important;
+}
+
+/* Кнопки */
+.btn-primary {
+  background-color: var(--rosseti-blue) !important;
+  border-color: var(--rosseti-blue) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--rosseti-blue-dark) !important;
+  border-color: var(--rosseti-blue-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--rosseti-blue) !important;
+  border-color: var(--rosseti-blue) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--rosseti-blue) !important;
+  color: #fff !important;
+}
+
+/* Текст */
+.text-primary {
+  color: var(--rosseti-blue) !important;
+}
+
+/* Бейджи */
+.badge.bg-primary {
+  background-color: var(--rosseti-blue) !important;
+}
+
+/* Форма */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--rosseti-blue) !important;
+  box-shadow: 0 0 0 3px rgba(0, 87, 168, 0.15) !important;
+}
+
+/* Навигация табы */
+.nav-tabs .nav-link.active {
+  color: var(--rosseti-blue) !important;
+  border-bottom-color: var(--rosseti-blue) !important;
+}
+
+.nav-tabs .nav-link {
+  color: var(--rosseti-gray-text) !important;
+}
+
+/* Таблицы */
+.table thead th {
+  background-color: var(--rosseti-gray-bg) !important;
+  color: var(--rosseti-gray-text);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--rosseti-gray-border) !important;
+}
+
+/* Акцентная полоса слева у карточек */
+.card-accent-blue {
+  border-left: 4px solid var(--rosseti-blue) !important;
+}
+
+.card-accent-amber {
+  border-left: 4px solid var(--rosseti-amber) !important;
+}
+
+.card-accent-green {
+  border-left: 4px solid #2E7D32 !important;
+}
+
+.card-accent-gray {
+  border-left: 4px solid #8A9BB0 !important;
+}
+
+/* Бейдж энергетика */
+.badge-energy {
+  background-color: var(--rosseti-amber);
+  color: #412402;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Список группы */
+.list-group-item {
+  border-color: var(--rosseti-gray-border) !important;
+}
+
+.list-group-item:hover {
+  background-color: var(--rosseti-gray-bg) !important;
+}
+
+/* Печать */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff !important;
+  }
+
+  .card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #000 !important;
+  }
+
+  .badge {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
