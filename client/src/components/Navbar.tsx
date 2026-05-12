@@ -21,18 +21,17 @@ const Navbar = () => {
         navigate('/login')
     }
 
-    // Увеличенный и жирный шрифт для основных ссылок
     const navLinkStyle = {
         fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif",
         fontSize: '16px',
         color: 'white',
-        fontWeight: '600', // Пожирней
+        fontWeight: '600',
         transition: 'all 0.2s ease-in-out',
         letterSpacing: '0.2px'
     }
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" style={{ padding: '0.6rem 0' }}>
+        <nav className="navbar navbar-expand-lg navbar-dark shadow-sm" style={{ padding: '0.6rem 0', backgroundColor: '#0057A8'}}>
             <div className="container">
                 <Link className="navbar-brand me-4" to="/">
                     <Logo />

@@ -4,7 +4,7 @@ import openai
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List # НОВАЯ СТРОЧКА
+from typing import List
 
 load_dotenv()
 
@@ -26,22 +26,20 @@ client = openai.OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
 )
 
-# НОВЫЙ КЛАСС для отдельного сообщения
 class ChatMessage(BaseModel):
     role: str
     content: str
 
 class ChatRequest(BaseModel):
-    message: str # Оставил для совместимости, если нужно
-    messages: List[ChatMessage] = [] # НОВАЯ СТРОЧКА: список всех сообщений
+    message: str
+    messages: List[ChatMessage] = []
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     try:
-        # Логика формирования контекста
-        history = [{"role": m.role, "content": m.content} for m in request.messages] # НОВАЯ СТРОЧКА
 
-        # Если пришел пустой список сообщений, используем одиночное поле message
+        history = [{"role": m.role, "content": m.content} for m in request.messages]
+
         if not history and request.message:
             history = [{"role": "user", "content": request.message}]
 
@@ -57,7 +55,7 @@ async def chat(request: ChatRequest):
 4. Ответы должны быть четкими, короткими (3-5 предложений) и профессиональными.
 5. Не используй английские слова в ответах (например, вместо 'hesitate' пиши 'стесняйтесь').
 """},
-                *history # ИЗМЕНЕННАЯ СТРОЧКА: подставляем всю историю сюда
+                *history
             ]
         )
 

@@ -7,7 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+client/node_modules
 dist
 dist-ssr
 *.local
@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# Server secrets
+server/.env
+.env
+
+# Server dependencies
+server/node_modules/
+node_modules/
+
+# Python (если используешь main.py)
+__pycache__/
+*.pyc

@@ -8,7 +8,6 @@ import fs from 'fs'
 
 const router = Router()
 
-// --- НАСТРОЙКА ХРАНИЛИЩА ---
 const avatarsDir = path.join(__dirname, '../../uploads/avatars')
 const docsDir = path.join(__dirname, '../../uploads/documents')
 
@@ -59,7 +58,6 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 })
 
-// --- 2. ОБНОВЛЕНИЕ ПРОФИЛЯ ---
 router.put('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { name, phone, department, employee_id, work_schedule, experience } = req.body
@@ -144,13 +142,11 @@ router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
 
     const { name, email, password, role, department, phone } = req.body
 
-    // 1. Проверяем, не занят ли email
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email])
     if (userExists.rows.length > 0) {
       return res.status(400).json({ message: 'Пользователь с таким email уже существует' })
     }
 
-    // 2. Хешируем пароль
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(password, salt)
 
@@ -224,10 +220,8 @@ router.put('/:id/role', authMiddleware, async (req: AuthRequest, res: Response) 
 })
 
 
-// --- НОВОЕ: СМЕНА ПАРОЛЯ АДМИНИСТРАТОРОМ ---
 router.put('/:id/password', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    // 1. Проверяем, что запрос делает именно админ
     if (req.user!.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Только администратор может принудительно менять пароли' })
     }

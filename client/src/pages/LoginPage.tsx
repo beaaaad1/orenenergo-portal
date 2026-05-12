@@ -28,7 +28,9 @@ const LoginPage = () => {
   };
 
   return (
+
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+
       <div className="card shadow p-4" style={{ width: '100%', maxWidth: '420px' }}>
         <div className="text-center mb-4">
           <img src={homeIconBlue} alt="logo" width={200} height={62} style={{margin: '10px 0', paddingBottom: '10px'}} />

@@ -13,6 +13,7 @@ import notificationsRouter from './routes/notifications'
 import statsRouter from './routes/stats'
 import searchRouter from './routes/search'
 import supportRoutes from './routes/support';
+import serviceRequestsRouter from './routes/serviceRequests';
 
 dotenv.config()
 
@@ -38,6 +39,7 @@ app.use('/api/notifications', notificationsRouter)
 app.use('/api/stats', statsRouter)
 app.use('/api/search', searchRouter)
 app.use('/api/support', supportRoutes);
+app.use('/api/service-requests', serviceRequestsRouter);
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на порту ${PORT}`)

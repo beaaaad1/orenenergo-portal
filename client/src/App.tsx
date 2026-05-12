@@ -19,9 +19,12 @@ import NewsDetail from './pages/NewsDetail'
 import SupportChat from './pages/SupportChat';
 import AdminSupport from './pages/AdminSupport';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-
-// 1. ИМПОРТИРУЕМ ТВОЙ НОВЫЙ КОМПОНЕНТ
+import LandingPage from './pages/LandingPage';
+import PublicTicketForm from './pages/PublicTicketForm';
 import ChatAssistant from './components/ChatAssistant';
+import ServiceDetailPage from './pages/ServiceDetailPage';
+import ExternalRequestsPage from './pages/ExternalRequestsPage';
+import RequestDetailPage from './pages/RequestDetailPage';
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const { token } = useAuth()
@@ -29,12 +32,23 @@ const PrivateRoute = ({ children }: { children: ReactNode }) => {
 }
 
 const AppRoutes = () => {
-  const { token } = useAuth() // Получаем токен, чтобы показывать бота только авторизованным
+  const { token } = useAuth()
 
   return (
     <div className="d-flex flex-column min-vh-100">
       <div className="flex-grow-1">
         <Routes>
+            <Route path="/" element={
+  token ? <PrivateRoute><DashboardPage/></PrivateRoute> : <LandingPage />
+}/>
+
+{/* Новая страница для заявок от обычных пользователей */}
+<Route path="/request/:type" element={<PublicTicketForm />} />
+            {/* 2. Новая страница формы заявок */}
+            <Route path="/request/:type" element={<PublicTicketForm />} />
+
+            {/* 3. Дашборд теперь доступен по этому адресу */}
+            <Route path="/dashboard" element={<PrivateRoute><DashboardPage/></PrivateRoute>}/>
             <Route path="/login" element={<LoginPage/>}/>
             <Route path="/" element={<PrivateRoute><DashboardPage/></PrivateRoute>}/>
             <Route path="/news" element={<PrivateRoute><NewsPage/></PrivateRoute>}/>
@@ -51,11 +65,13 @@ const AppRoutes = () => {
             <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/support" element={<SupportChat />} />
             <Route path="/admin/support" element={<AdminSupport />} />
+            <Route path="/service/:type" element={<ServiceDetailPage />} />
+            <Route path="/ExternalRequestsPage" element={<ExternalRequestsPage />} />
+            <Route path="/admin/requests/:id" element={<RequestDetailPage />} />
         </Routes>
       </div>
 
-      {/* 2. ВСТАВЛЯЕМ БОТА ЗДЕСЬ */}
-      {/* Условие {token && ...} гарантирует, что бот не появится на странице входа */}
+
       {token && <ChatAssistant />}
 
       <Footer />

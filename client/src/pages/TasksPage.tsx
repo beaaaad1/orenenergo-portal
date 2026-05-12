@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
@@ -101,6 +101,7 @@ const TasksPage = () => {
             <h2 className="fw-bold mb-1" style={{ color: '#1A202C' }}>Управление задачами</h2>
             <p className="text-muted mb-0">Канбан-доска подразделения</p>
           </div>
+
           <div className="d-flex gap-2">
             <button className="btn btn-white shadow-sm border-0 px-3" onClick={() => navigate('/print?type=tasks')} style={{ borderRadius: '10px' }}>
               🖨️ Отчет
@@ -114,6 +115,69 @@ const TasksPage = () => {
             </button>
           </div>
         </div>
+
+          {/* Блок с кнопкой перехода к заявкам */}
+          <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#fff',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              border: '1px solid #D8E2EC',
+              marginBottom: '24px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+          }}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                  <div style={{
+                      background: '#FDEEEE',
+                      color: '#C0392B',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '20px'
+                  }}>
+                      📩
+                  </div>
+                  <div>
+                      <div style={{fontWeight: 700, color: '#1A2B3C', fontSize: '15px'}}>Входящие заявки от клиентов
+                      </div>
+                      <div style={{fontSize: '13px', color: '#64748B'}}>Проверьте новые обращения на техприсоединение и
+                          ремонт
+                      </div>
+                  </div>
+              </div>
+
+              <Link to="/ExternalRequestsPage" style={{textDecoration: 'none'}}>
+                  <button style={{
+                      background: '#F0F4F8',
+                      color: '#0057A8',
+                      border: '1px solid #D8E2EC',
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s'
+                  }}
+                          onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#0057A8';
+                              e.currentTarget.style.color = '#fff';
+                          }}
+                          onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#F0F4F8';
+                              e.currentTarget.style.color = '#0057A8';
+                          }}>
+                      Просмотреть заявки →
+                  </button>
+              </Link>
+          </div>
 
         {/* Форма создания */}
         {showForm && (
