@@ -115,7 +115,6 @@ const ServiceDetailPage = () => {
         alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-
             <Link to="/">
                 <Logo />
             </Link>
@@ -144,14 +143,14 @@ const ServiceDetailPage = () => {
 
         <div style={{ padding: '40px' }}>
 
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-    {data.stats && data.stats.map((s, i) => (
-      <div key={i} style={{ background: '#F8FAFC', padding: '15px 25px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-        <div style={{ fontSize: '12px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>{s.label}</div>
-        <div style={{ fontSize: '20px', fontWeight: 700, color: '#0057A8' }}>{s.value}</div>
-      </div>
-    ))}
-  </div>
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
+            {data.stats && data.stats.map((s, i) => (
+              <div key={i} style={{ background: '#F8FAFC', padding: '15px 25px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <div style={{ fontSize: '12px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px' }}>{s.label}</div>
+                <div style={{ fontSize: '20px', fontWeight: 700, color: '#0057A8' }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
 
           <p style={{ fontSize: '18px', lineHeight: '1.6', color: '#445566', marginBottom: '30px' }}>
             {data.detail}
@@ -162,15 +161,40 @@ const ServiceDetailPage = () => {
             Что входит в услугу:
           </h4>
 
-          <ul style={{ paddingLeft: '20px' }}>
+          <ul style={{ paddingLeft: '20px', marginBottom: '35px' }}>
             {data.features.map((f, i) => (
               <li key={i} style={{ margin: '12px 0', color: '#6B7A8D', fontSize: '16px' }}>{f}</li>
             ))}
           </ul>
 
-          <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
+          {/* ИНФОРМАЦИОННЫЙ БЛОК: СВЯЗЬ С ОПЕРАТОРОМ ДЛЯ КЛИЕНТА */}
+          <div style={{
+            background: '#FFF9E6',
+            border: '1px solid #FFE0B2',
+            borderRadius: '8px',
+            padding: '16px 24px',
+            marginBottom: '35px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px'
+          }}>
+            <span style={{ fontSize: '24px' }}>📞</span>
+            <div>
+              <strong style={{ color: '#B78103', display: 'block', fontSize: '14px', marginBottom: '2px' }}>
+                Центр поддержки клиентов «Оренбургэнерго»:
+              </strong>
+              <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#1A2B3C' }}>
+                8 (3532) 98-44-11
+              </span>
+              <span style={{ fontSize: '13px', color: '#6B7A8D', marginLeft: '12px' }}>
+                (Горячая линия поддержки заявителей, звонок бесплатный)
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>
               <button
-                onClick={() => navigate(`/request/${type}`)}
+                onClick={() => navigate(`/service/${type}/apply`)}
                 style={{
                   background: '#F5A623',
                   color: '#412402',

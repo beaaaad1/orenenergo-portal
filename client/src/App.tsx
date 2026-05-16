@@ -1,3 +1,4 @@
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
@@ -18,13 +19,16 @@ import UserProfileDetail from './pages/UserProfileDetail'
 import NewsDetail from './pages/NewsDetail'
 import SupportChat from './pages/SupportChat';
 import AdminSupport from './pages/AdminSupport';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 import LandingPage from './pages/LandingPage';
 import PublicTicketForm from './pages/PublicTicketForm';
 import ChatAssistant from './components/ChatAssistant';
-import ServiceDetailPage from './pages/ServiceDetailPage';
 import ExternalRequestsPage from './pages/ExternalRequestsPage';
 import RequestDetailPage from './pages/RequestDetailPage';
+import ContractsPage from "./pages/ContractsPage.tsx";
+
+// Импортируем наш новый вспомогательный файл-диспетчер
+import ServiceRouteDispatcher from './components/ServiceRouteDispatcher';
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
   const { token } = useAuth()
@@ -38,39 +42,41 @@ const AppRoutes = () => {
     <div className="d-flex flex-column min-vh-100">
       <div className="flex-grow-1">
         <Routes>
-            <Route path="/" element={
-  token ? <PrivateRoute><DashboardPage/></PrivateRoute> : <LandingPage />
-}/>
+            {/* ГЛАВНАЯ СТРАНИЦА ПЛАТФОРМЫ */}
+            <Route path="/" element={token ? <PrivateRoute><DashboardPage /></PrivateRoute> : <LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-{/* Новая страница для заявок от обычных пользователей */}
-<Route path="/request/:type" element={<PublicTicketForm />} />
-            {/* 2. Новая страница формы заявок */}
-            <Route path="/request/:type" element={<PublicTicketForm />} />
+            {/* ЕДИНЫЙ УМНЫЙ МАРШРУТ ДЛЯ УСЛУГ */}
+            {/* Он сам решит, кого отправить на ServiceDetailPage, а кого на карту техпроцесса */}
+            <Route path="/service/:type" element={<ServiceRouteDispatcher />} />
 
-            {/* 3. Дашборд теперь доступен по этому адресу */}
-            <Route path="/dashboard" element={<PrivateRoute><DashboardPage/></PrivateRoute>}/>
-            <Route path="/login" element={<LoginPage/>}/>
-            <Route path="/" element={<PrivateRoute><DashboardPage/></PrivateRoute>}/>
-            <Route path="/news" element={<PrivateRoute><NewsPage/></PrivateRoute>}/>
-            <Route path="/users" element={<PrivateRoute><UsersPage/></PrivateRoute>}/>
-            <Route path="/tasks" element={<PrivateRoute><TasksPage/></PrivateRoute>}/>
-            <Route path="/vacations" element={<PrivateRoute><VacationsPage/></PrivateRoute>}/>
-            <Route path="/profile" element={<PrivateRoute><ProfilePage/></PrivateRoute>}/>
-            <Route path="/documents" element={<PrivateRoute><DocumentsPage/></PrivateRoute>}/>
-            <Route path="/events" element={<PrivateRoute><EventsPage/></PrivateRoute>}/>
-            <Route path="*" element={<NotFoundPage/>}/>
-            <Route path="/admin" element={<PrivateRoute><AdminPage/></PrivateRoute>}/>
+            {/* Публичная форма подачи заявки для гостей */}
+            <Route path="/service/:type/apply" element={<PublicTicketForm />} />
+
+            {/* ВНУТРЕННИЕ МОДУЛИ СОТРУДНИКОВ */}
+            <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+            <Route path="/news" element={<PrivateRoute><NewsPage /></PrivateRoute>} />
+            <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
+            <Route path="/tasks" element={<PrivateRoute><TasksPage /></PrivateRoute>} />
+            <Route path="/vacations" element={<PrivateRoute><VacationsPage /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/documents" element={<PrivateRoute><DocumentsPage /></PrivateRoute>} />
+            <Route path="/events" element={<PrivateRoute><EventsPage /></PrivateRoute>} />
+            <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
             <Route path="/print" element={<PrivateRoute><PrintPage /></PrivateRoute>} />
-            <Route path="/profile/:id" element={<UserProfileDetail />} />
+            <Route path="/profile/:id" element={<PrivateRoute><UserProfileDetail /></PrivateRoute>} />
             <Route path="/news/:id" element={<NewsDetail />} />
-            <Route path="/support" element={<SupportChat />} />
-            <Route path="/admin/support" element={<AdminSupport />} />
-            <Route path="/service/:type" element={<ServiceDetailPage />} />
-            <Route path="/ExternalRequestsPage" element={<ExternalRequestsPage />} />
-            <Route path="/admin/requests/:id" element={<RequestDetailPage />} />
+            <Route path="/support" element={<PrivateRoute><SupportChat /></PrivateRoute>} />
+            <Route path="/admin/support" element={<PrivateRoute><AdminSupport /></PrivateRoute>} />
+
+            <Route path="/ExternalRequestsPage" element={<PrivateRoute><ExternalRequestsPage /></PrivateRoute>} />
+            <Route path="/admin/requests/:id" element={<PrivateRoute><RequestDetailPage /></PrivateRoute>} />
+            <Route path="/contracts" element={<PrivateRoute><ContractsPage /></PrivateRoute>} />
+
+            {/* Маршрут ошибки — всегда в конце */}
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
-
 
       {token && <ChatAssistant />}
 
@@ -87,4 +93,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;

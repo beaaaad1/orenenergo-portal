@@ -16,8 +16,12 @@ interface Document {
 
 const categoryLabel = (cat: string) => {
   const labels: Record<string, string> = {
-    general: 'Общее', order: 'Приказ', hr: 'Кадры',
-    finance: 'Финансы', technical: 'Технические'
+    general: 'Общее',
+    order: 'Заявления ',
+    contract: 'Договоры',
+    hr: 'Кадры',
+    finance: 'Финансы',
+    technical: 'Технические'
   }
   return labels[cat] || cat
 }
@@ -139,10 +143,11 @@ const DocumentsPage = () => {
                     <label className="form-label text-muted small fw-bold">КАТЕГОРИЯ</label>
                     <select className="form-select bg-light border-0" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                       <option value="general">Общее</option>
-                      <option value="order">Приказ</option>
-                      <option value="hr">Кадры</option>
-                      <option value="finance">Финансы</option>
-                      <option value="technical">Технические</option>
+                      <option value="order">Заявления</option>
+                        <option value="contract">Договоры</option>
+                        <option value="hr">Кадры</option>
+                        <option value="finance">Финансы</option>
+                        <option value="technical">Технические</option>
                     </select>
                   </div>
                   <div className="col-md-6">
@@ -182,12 +187,13 @@ const DocumentsPage = () => {
               onChange={e => setFilterCategory(e.target.value)}
               style={{ borderRadius: '12px', height: '50px' }}
             >
-              <option value="">Все категории документов</option>
-              <option value="general">Общее</option>
-              <option value="order">Приказы</option>
-              <option value="hr">Кадры</option>
-              <option value="finance">Финансы</option>
-              <option value="technical">Технические</option>
+                <option value="">Все категории документов</option>
+                <option value="general">Общее</option>
+                <option value="order">Заявления</option>
+                        <option value="contract">Договоры</option>
+                <option value="hr">Кадры</option>
+                <option value="finance">Финансы</option>
+                <option value="technical">Технические</option>
             </select>
           </div>
         </div>

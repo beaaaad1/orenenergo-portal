@@ -6,12 +6,14 @@ import api from '../api/axios'
 
 interface Vacation {
   id: number
+  user_id: number
   user_name: string
   department: string
   start_date: string
   end_date: string
   status: string
   comment: string | null
+  type?: string
 }
 
 const statusLabel = (s: string) => {
@@ -30,101 +32,137 @@ const VacationsPage = () => {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [vacations, setVacations] = useState<Vacation[]>([])
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [isSigned, setIsSigned] = useState(false)
+  const [selectedVacation, setSelectedVacation] = useState<Vacation | null>(null)
+
   const [form, setForm] = useState({
     startDate: '',
     endDate: '',
     comment: '',
+    type: 'Ежегодный основной оплачиваемый отпуск',
   })
 
   const fetchVacations = async () => {
     try {
       const res = await api.get('/vacations')
       setVacations(res.data)
-    } finally {
-      setLoading(false)
+    } catch (err) {
+      console.error("Ошибка загрузки:", err)
     }
   }
 
   useEffect(() => { fetchVacations() }, [])
 
+  // Функция для печати
+  const handlePrint = () => {
+    window.print()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await api.post('/vacations', form)
-    setForm({ startDate: '', endDate: '', comment: '' })
-    setShowForm(false)
-    fetchVacations()
+    if (!isSigned) return alert("Необходимо подтвердить подписание ПЭП")
+    try {
+        await api.post('/vacations', form)
+        setForm({ startDate: '', endDate: '', comment: '', type: 'Ежегодный основной оплачиваемый отпуск' })
+        setIsSigned(false)
+        setShowForm(false)
+        fetchVacations()
+    } catch (err) {
+        alert("Ошибка при подаче заявки")
+    }
   }
 
   const handleStatus = async (id: number, status: string) => {
-    await api.put(`/vacations/${id}/status`, { status })
-    fetchVacations()
+    try {
+      await api.put(`/vacations/${id}/status`, { status })
+      setSelectedVacation(null)
+      fetchVacations()
+    } catch (err) {
+      alert("Ошибка при обновлении статуса")
+    }
   }
 
-  // Расчет количества дней
   const calculateDays = (start: string, end: string) => {
+    if (!start || !end) return 0;
     const s = new Date(start);
     const e = new Date(end);
     const diff = Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     return diff > 0 ? diff : 0;
   }
 
+  const getApprovedCount = (userId: number) => {
+    const currentYear = new Date().getFullYear();
+    return vacations.filter(v =>
+      v.user_id === userId &&
+      v.status === 'APPROVED' &&
+      new Date(v.start_date).getFullYear() === currentYear
+    ).length;
+  }
+
   return (
-    <div style={{ backgroundColor: '#F4F7F9', minHeight: '100vh' }}>
-      <Navbar />
+    <div style={{ backgroundColor: '#F4F7F9', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+      {/* Скрываем навигацию при печати */}
+      <div className="d-print-none">
+        <Navbar />
+      </div>
 
-      {/* Контейнер с правильными отступами */}
-      <div className="container py-5">
-
-        {/* Заголовок */}
-        <div className="d-flex justify-content-between align-items-end mb-5">
+      <div className="container py-5 d-print-none">
+        <div className="d-flex justify-content-between align-items-end mb-4">
           <div>
-            <h2 className="fw-bold mb-1" style={{ color: '#1A202C' }}>График отпусков</h2>
-            <p className="text-muted mb-0">Учет и планирование отдыха сотрудников</p>
+            <h3 className="fw-bold mb-1" style={{ color: '#1A202C' }}>
+                {isAdmin() ? 'Управление отпусками' : 'Мои отпуска'}
+            </h3>
+            <p className="text-muted mb-0 small">Система электронного документооборота</p>
           </div>
           <div className="d-flex gap-2">
-            <button className="btn btn-white shadow-sm border-0 px-3" onClick={() => navigate('/print?type=vacations')} style={{ borderRadius: '10px' }}>
-              🖨️ Печать
-            </button>
+            {isAdmin() && (
+                <button className="btn btn-white shadow-sm border-0 px-3 btn-sm" onClick={() => navigate('/print?type=vacations')} style={{ borderRadius: '8px' }}>
+                    🖨️ Реестр
+                </button>
+            )}
             <button
-              className="btn text-white shadow-sm px-4"
+              className="btn text-white shadow-sm px-4 btn-sm"
               onClick={() => setShowForm(!showForm)}
-              style={{ backgroundColor: '#00A1E4', borderRadius: '10px', fontWeight: '500' }}
+              style={{ backgroundColor: showForm ? '#718096' : '#00A1E4', borderRadius: '8px', fontWeight: '500' }}
             >
-              {showForm ? 'Отмена' : '+ Подать заявку'}
+              {showForm ? 'Отмена' : '+ Создать заявление'}
             </button>
           </div>
         </div>
 
-        {/* Форма заявки */}
+        {/* Форма подачи */}
         {showForm && (
-          <div className="card border-0 shadow-sm mb-5" style={{ borderRadius: '15px' }}>
+          <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '15px' }}>
             <div className="card-body p-4">
-              <h5 className="fw-bold mb-4">Оформление заявления на отпуск</h5>
+              <h6 className="fw-bold mb-4 text-uppercase text-muted" style={{ fontSize: '12px' }}>Заполнение данных</h6>
               <form onSubmit={handleSubmit}>
-                <div className="row g-4">
-                  <div className="col-md-4">
-                    <label className="form-label text-muted small fw-bold">ДАТА НАЧАЛА</label>
-                    <input type="date" className="form-control bg-light border-0" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required />
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label text-muted small fw-bold">ВИД ОТПУСКА</label>
+                    <select className="form-select form-select-sm bg-light border-0" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+                      <option>Ежегодный основной оплачиваемый отпуск</option>
+                      <option>Отпуск без сохранения заработной платы</option>
+                      <option>Дополнительный оплачиваемый отпуск</option>
+                    </select>
                   </div>
-                  <div className="col-md-4">
-                    <label className="form-label text-muted small fw-bold">ДАТА ОКОНЧАНИЯ</label>
-                    <input type="date" className="form-control bg-light border-0" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} required />
+                  <div className="col-md-3">
+                    <label className="form-label text-muted small fw-bold">НАЧАЛО</label>
+                    <input type="date" className="form-control form-control-sm bg-light border-0" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required />
                   </div>
-                  <div className="col-md-4 d-flex align-items-end">
-                    {form.startDate && form.endDate && (
-                       <div className="w-100 p-2 text-center rounded bg-primary-subtle text-primary fw-bold mb-1" style={{ fontSize: '14px' }}>
-                         Итого: {calculateDays(form.startDate, form.endDate)} дн.
-                       </div>
-                    )}
+                  <div className="col-md-3">
+                    <label className="form-label text-muted small fw-bold">КОНЕЦ</label>
+                    <input type="date" className="form-control form-control-sm bg-light border-0" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} required />
                   </div>
                   <div className="col-12">
-                    <label className="form-label text-muted small fw-bold">ПРИМЕЧАНИЕ (НЕОБЯЗАТЕЛЬНО)</label>
-                    <textarea className="form-control bg-light border-0" rows={2} value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Укажите причину или доп. информацию..." />
+                     <textarea className="form-control form-control-sm bg-light border-0" rows={2} value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Примечание..." />
                   </div>
-                  <div className="col-12 text-end">
-                    <button type="submit" className="btn btn-dark px-5" style={{ borderRadius: '10px' }}>Отправить на согласование</button>
+                  <div className="col-12 d-flex justify-content-between align-items-center mt-3">
+                    <div className="form-check">
+                        <input className="form-check-input" type="checkbox" checked={isSigned} onChange={(e) => setIsSigned(e.target.checked)} id="pepSign" />
+                        <label className="form-check-label small text-muted" htmlFor="pepSign">Подписать ПЭП</label>
+                    </div>
+                    <button type="submit" className="btn btn-primary btn-sm px-4" disabled={!isSigned} style={{ backgroundColor: '#0057A8' }}>Отправить</button>
                   </div>
                 </div>
               </form>
@@ -132,94 +170,143 @@ const VacationsPage = () => {
           </div>
         )}
 
-        {loading && <div className="text-center py-5"><div className="spinner-border text-primary"></div></div>}
-
-        {/* Список заявок */}
-        <div className="d-flex flex-column gap-3">
+        {/* Список заявлений */}
+        <div className="d-flex flex-column gap-2">
           {vacations.map(v => {
             const style = statusStyle(v.status);
-            const days = calculateDays(v.start_date, v.end_date);
-
             return (
               <div
                 key={v.id}
                 className="card border-0 shadow-sm"
-                style={{ borderRadius: '16px', transition: '0.2s' }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.01)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                style={{ borderRadius: '12px', cursor: isAdmin() ? 'pointer' : 'default' }}
+                onClick={() => isAdmin() && setSelectedVacation(v)}
               >
-                <div className="card-body p-4">
+                <div className="card-body py-3 px-4">
                   <div className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-3">
-                      <div
-                        className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                        style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #2D3748 0%, #4A5568 100%)' }}
+                      <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold small"
+                        style={{ width: '36px', height: '36px', background: isAdmin() ? '#4A5568' : '#00A1E4', fontSize: '12px' }}
                       >
                         {v.user_name.charAt(0)}
                       </div>
                       <div>
-                        <h6 className="fw-bold mb-0" style={{ color: '#2D3748' }}>{v.user_name}</h6>
-                        <span className="text-muted small">{v.department}</span>
+                        <div className="fw-bold small">{isAdmin() ? v.user_name : 'Мое заявление'}</div>
+                        <div className="text-muted" style={{ fontSize: '11px' }}>{v.department}</div>
                       </div>
                     </div>
-
-                    <div className="text-center px-4 border-start border-end">
-                      <div className="small text-muted text-uppercase fw-bold mb-1" style={{ fontSize: '10px' }}>Период</div>
-                      <div className="fw-bold" style={{ fontSize: '14px' }}>
-                        {new Date(v.start_date).toLocaleDateString('ru-RU')} — {new Date(v.end_date).toLocaleDateString('ru-RU')}
-                      </div>
-                      <div className="badge bg-light text-dark border mt-1">{days} дней</div>
+                    <div className="text-center small d-none d-md-block">
+                       <span className="fw-medium">{new Date(v.start_date).toLocaleDateString()} — {new Date(v.end_date).toLocaleDateString()}</span>
+                       <span className="text-muted ms-2">({calculateDays(v.start_date, v.end_date)} дн.)</span>
                     </div>
-
-                    <div className="d-flex flex-column align-items-end gap-3">
-                      <span
-                        style={{
-                          backgroundColor: style.bg, color: style.color, border: `1px solid ${style.border}`,
-                          fontSize: '12px', fontWeight: '700', padding: '6px 14px', borderRadius: '10px'
-                        }}
-                      >
-                        {statusLabel(v.status)}
-                      </span>
-
-                      {isAdmin() && v.status === 'PENDING' && (
-                        <div className="d-flex gap-2">
-                          <button
-                            className="btn btn-sm text-success fw-bold p-0 px-2"
-                            onClick={() => handleStatus(v.id, 'APPROVED')}
-                            style={{ fontSize: '13px' }}
-                          >
-                            Одобрить
-                          </button>
-                          <div className="vr"></div>
-                          <button
-                            className="btn btn-sm text-danger fw-bold p-0 px-2"
-                            onClick={() => handleStatus(v.id, 'REJECTED')}
-                            style={{ fontSize: '13px' }}
-                          >
-                            Отклонить
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <span style={{ backgroundColor: style.bg, color: style.color, border: `1px solid ${style.border}`, fontSize: '10px', fontWeight: '700', padding: '3px 10px', borderRadius: '6px' }}>
+                        {statusLabel(v.status).toUpperCase()}
+                    </span>
                   </div>
-
-                  {v.comment && (
-                    <div className="mt-3 p-2 bg-light rounded" style={{ fontSize: '13px', borderLeft: '3px solid #CBD5E0' }}>
-                      <span className="me-2">💬</span> {v.comment}
-                    </div>
-                  )}
                 </div>
               </div>
             )
           })}
-
-          {vacations.length === 0 && !loading && (
-            <div className="text-center py-5 bg-white rounded-4 shadow-sm">
-              <p className="text-muted mb-0">Активных заявок на отпуск не обнаружено</p>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* МОДАЛЬНОЕ ОКНО - ОФИЦИАЛЬНЫЙ БЛАНК */}
+      {selectedVacation && (
+          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center py-0 py-md-4"
+               style={{ backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 3000, overflowY: 'auto' }}>
+
+              <style>{`
+                @media print {
+                  body * { visibility: hidden; }
+                  .print-container, .print-container * { visibility: visible; }
+                  .print-container { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; box-shadow: none !important; }
+                  .d-print-none { display: none !important; }
+                }
+              `}</style>
+
+              <div className="bg-white shadow-lg p-4 p-md-5 print-container"
+                   style={{ width: '100%', maxWidth: '750px', height: 'fit-content', minHeight: '850px', borderRadius: '2px', color: '#000' }}>
+
+                  {/* Панель управления (скрывается при печати) */}
+                  <div className="d-flex justify-content-between mb-4 d-print-none align-items-center">
+                      <div className="d-flex gap-2">
+                        <button className="btn btn-sm btn-primary px-3" onClick={handlePrint}>🖨️ Печать</button>
+                        <div className="badge bg-light text-dark border p-2 fw-normal" style={{ fontSize: '12px' }}>
+                            📊 Одобрено в 2026г: <strong>{getApprovedCount(selectedVacation.user_id)}</strong>
+                        </div>
+                      </div>
+                      <button className="btn btn-sm btn-outline-secondary border-0" onClick={() => setSelectedVacation(null)}>✕ Закрыть</button>
+                  </div>
+
+                  {/* ШАПКА */}
+                  <div className="row mb-5" style={{ fontSize: '13px', lineHeight: '1.2' }}>
+                      <div className="col-6"></div>
+                      <div className="col-6 ps-5">
+                          <p className="mb-0">Директору филиала ПАО «Россети Волга» -</p>
+                          <p className="fw-bold mb-0">«Оренбургэнерго»</p>
+                          <p className="mb-3">Кажаеву В.Ф.</p>
+                          <p className="mb-0 text-muted" style={{ fontSize: '11px' }}>от сотрудника:</p>
+                          <p className="fw-bold mb-0">{selectedVacation.user_name}</p>
+                          <p className="mb-0">{selectedVacation.department}</p>
+                      </div>
+                  </div>
+
+                  {/* ЗАГОЛОВОК */}
+                  <div className="text-center my-5">
+                      <h6 className="fw-bold" style={{ letterSpacing: '1px' }}>ЗАЯВЛЕНИЕ</h6>
+                  </div>
+
+                  {/* ТЕКСТ */}
+                  <div className="mb-5 px-4" style={{ fontSize: '14px', textAlign: 'justify', lineHeight: '1.8' }}>
+                      <p>
+                          Прошу предоставить мне <strong>{selectedVacation.type || 'Ежегодный основной оплачиваемый отпуск'}</strong> сроком
+                          на <strong>{calculateDays(selectedVacation.start_date, selectedVacation.end_date)}</strong> календарных дней
+                          с <strong>{new Date(selectedVacation.start_date).toLocaleDateString('ru-RU')}</strong> по <strong>{new Date(selectedVacation.end_date).toLocaleDateString('ru-RU')}</strong>.
+                      </p>
+                      {selectedVacation.comment && (
+                          <div className="mt-4 p-2 bg-light rounded border-start border-4 d-print-none">
+                              <small className="text-muted d-block" style={{ fontSize: '10px' }}>КОММЕНТАРИЙ:</small>
+                              <span style={{ fontSize: '13px' }}>{selectedVacation.comment}</span>
+                          </div>
+                      )}
+                  </div>
+
+                  {/* ПОДПИСИ */}
+                  <div className="mt-5 pt-5 d-flex justify-content-between align-items-end px-4" style={{ fontSize: '13px' }}>
+                      <div>
+                          <p className="mb-1">Дата подачи: {new Date().toLocaleDateString('ru-RU')}</p>
+                          <p className="mb-0">Подпись: __________________</p>
+                      </div>
+                      <div className="text-center p-2" style={{ border: '1.5px solid #0057A8', color: '#0057A8', borderRadius: '2px', maxWidth: '220px' }}>
+                          <div className="fw-bold" style={{ fontSize: '11px' }}>ДОКУМЕНТ ПОДПИСАН ЭП</div>
+                          <hr className="my-1" style={{ opacity: 0.2 }} />
+                          <div style={{ fontSize: '9px' }}>Сертификат: {selectedVacation.user_id}-{selectedVacation.id}</div>
+                          <div style={{ fontSize: '9px' }}>Владелец: {selectedVacation.user_name}</div>
+                      </div>
+                  </div>
+
+                  {/* КНОПКИ ДЕЙСТВИЯ (скрываются при печати) */}
+                  <div className="mt-auto pt-5 d-flex gap-2 justify-content-center d-print-none">
+                      {selectedVacation.status === 'PENDING' ? (
+                          <>
+                              <button className="btn btn-outline-danger btn-sm px-4" onClick={() => handleStatus(selectedVacation.id, 'REJECTED')}>Отклонить</button>
+                              <button
+                                  className="btn btn-primary btn-sm px-4"
+                                  disabled={getApprovedCount(selectedVacation.user_id) >= 2}
+                                  onClick={() => handleStatus(selectedVacation.id, 'APPROVED')}
+                                  style={{ backgroundColor: '#0057A8' }}
+                              >
+                                  {getApprovedCount(selectedVacation.user_id) >= 2 ? 'Лимит превышен' : 'Одобрить'}
+                              </button>
+                          </>
+                      ) : (
+                          <div className={`p-2 border text-center rounded fw-bold small w-100 ${selectedVacation.status === 'APPROVED' ? 'text-success border-success' : 'text-danger border-danger'}`}>
+                              РЕШЕНИЕ ПРИНЯТО: {statusLabel(selectedVacation.status).toUpperCase()}
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   )
 }

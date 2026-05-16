@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom' // Добавлен useNavigate для работы кнопок
 import {
   Chart as ChartJS,
   ArcElement,
@@ -64,11 +64,15 @@ const taskStatusBadge = (s: string) => {
 
 const DashboardPage = () => {
   const { user } = useAuth()
+  const navigate = useNavigate() // Инициализация роутера для редиректов по кнопкам
   const [news, setNews] = useState<News[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [totalUsers, setTotalUsers] = useState(0)
   const [totalVacations, setTotalVacations] = useState(0)
+
+  // Проверка роли для динамического отображения на кнопках
+  const isManagerOrAdmin = user?.role === 'ADMIN' || user?.role === 'DIRECTOR' || user?.role === 'HR';
 
   useEffect(() => {
     api.get('/news').then(res => setNews(res.data.slice(0, 4)))
@@ -179,6 +183,123 @@ const DashboardPage = () => {
             </Link>
           ))}
         </div>
+
+        {/* ====================================================================== */}
+        {/* НОВЫЙ БЛОК: 6 БОЛЬШИХ КНОПОК ДЛЯ УПРАВЛЕНИЯ И ПОДАЧИ ЗАЯВОК */}
+        {/* ====================================================================== */}
+        <div style={{ marginBottom: 24 }}>
+          <h5 style={{ fontWeight: 600, color: '#1A2B3C', marginBottom: 14, fontSize: 16, letterSpacing: '0.3px' }}>
+            Быстрые действия и кадровые документы
+          </h5>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+
+            {/* Кнопка 1: Основной отпуск */}
+            <button
+              onClick={() => navigate('/vacations?action=new&type=annual')}
+              style={{
+                background: '#fff', border: '1px solid #D8E2EC', borderRadius: 10, padding: '20px',
+                textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 8 }}>📅</div>
+              <div style={{ fontWeight: 600, color: '#1A2B3C', fontSize: 14 }}>Основной отпуск</div>
+              <div style={{ fontSize: 12, color: '#8A9BB0', marginTop: 4 }}>Ежегодный оплачиваемый отпуск</div>
+            </button>
+
+            {/* Кнопка 2: Отпуск без содержания */}
+            <button
+              onClick={() => navigate('/vacations?action=new&type=unpaid')}
+              style={{
+                background: '#fff', border: '1px solid #D8E2EC', borderRadius: 10, padding: '20px',
+                textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 8 }}>💼</div>
+              <div style={{ fontWeight: 600, color: '#1A2B3C', fontSize: 14 }}>За свой счет</div>
+              <div style={{ fontSize: 12, color: '#8A9BB0', marginTop: 4 }}>Без сохранения заработной платы</div>
+            </button>
+
+            {/* Кнопка 3: Учебный отпуск */}
+            <button
+              onClick={() => navigate('/vacations?action=new&type=study')}
+              style={{
+                background: '#fff', border: '1px solid #D8E2EC', borderRadius: 10, padding: '20px',
+                textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 8 }}>🎓</div>
+              <div style={{ fontWeight: 600, color: '#1A2B3C', fontSize: 14 }}>Учебный отпуск</div>
+              <div style={{ fontSize: 12, color: '#8A9BB0', marginTop: 4 }}>Для прохождения обучения и сессий</div>
+            </button>
+
+            {/* Кнопка 4: Ссылка на страницу всех заявлений (Глава КЭДО) */}
+            <button
+              onClick={() => navigate('/vacations')}
+              style={{
+                background: '#0057A8', border: 'none', borderRadius: 10, padding: '20px',
+                textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,87,168,0.2)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 8 }}>🗂️</div>
+              <div style={{ fontWeight: 600, color: '#fff', fontSize: 14 }}>Реестр заявлений</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>
+                {isManagerOrAdmin ? 'Проверить и утвердить бланки' : 'Статусы и история моих поданных документов'}
+              </div>
+            </button>
+
+              {/* Кнопка 5: Печать сводного отчета (Доступен только руководству/админу) */}
+              {/* Кнопка 5: Договоры и Подключения */}
+              <button
+                  onClick={() => navigate('/contracts')}
+                  style={{
+                      background: '#fff',
+                      border: '1px solid #D8E2EC', borderRadius: 10, padding: '20px',
+                      textAlign: 'left', cursor: 'pointer',
+                      transition: 'transform 0.15s, box-shadow 0.15s',
+                  }}
+                  onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                  }}
+              >
+                  <div style={{fontSize: 24, marginBottom: 8}}>💼</div>
+                  <div style={{fontWeight: 600, color: '#1A2B3C', fontSize: 14}}>Договоры и услуги</div>
+                  <div style={{fontSize: 12, color: '#8A9BB0', marginTop: 4}}>
+                      Учет заявок на подключение света и генерация договоров
+                  </div>
+              </button>
+
+            {/* Кнопка 6: Инструкция / Помощь по ПЭП */}
+            <button
+              onClick={() => navigate('/help')}
+              style={{
+                background: '#fff', border: '1px solid #D8E2EC', borderRadius: 10, padding: '20px',
+                textAlign: 'left', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: 24, marginBottom: 8 }}>ℹ️</div>
+              <div style={{ fontWeight: 600, color: '#1A2B3C', fontSize: 14 }}>Справка КЭДО</div>
+              <div style={{ fontSize: 12, color: '#8A9BB0', marginTop: 4 }}>Инструкция по подписанию через ПЭП</div>
+            </button>
+
+          </div>
+        </div>
+        {/* ====================================================================== */}
 
         {/* Графики */}
         {stats && (

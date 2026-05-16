@@ -4,31 +4,40 @@ import authMiddleware, { AuthRequest } from '../middleware/auth'
 
 const router = Router()
 
-// Получить все отпуска
 router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const result = await pool.query(`
+    const { id, role } = req.user!;
+
+    let query = `
       SELECT v.*, u.name as user_name, u.department
       FROM vacations v
       JOIN users u ON v.user_id = u.id
-      ORDER BY v.start_date ASC
-    `)
-    res.json(result.rows)
-  } catch {
-    res.status(500).json({ message: 'Ошибка сервера' })
-  }
-})
+    `;
+    let params: any[] = [];
 
-// Подать заявку на отпуск
+    if (role !== 'ADMIN' && role !== 'MANAGER') {
+      query += ` WHERE v.user_id = $1`;
+      params.push(id);
+    }
+
+    query += ` ORDER BY v.start_date ASC`;
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
 router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { startDate, endDate, comment } = req.body
+    const { startDate, endDate, comment, type } = req.body // Добавили type
 
     const result = await pool.query(`
-      INSERT INTO vacations (user_id, start_date, end_date, comment)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO vacations (user_id, start_date, end_date, comment, vacation_type)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
-    `, [req.user!.id, startDate, endDate, comment || null])
+    `, [req.user!.id, startDate, endDate, comment || null, type])
 
     res.status(201).json(result.rows[0])
   } catch {

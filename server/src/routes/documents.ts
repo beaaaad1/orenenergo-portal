@@ -21,7 +21,8 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.png', '.jpg']
+    // СТАРОЕ НЕ МЕНЯЕМ: просто добавили '.html' в конец массива разрешенных типов
+    const allowed = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.png', '.jpg', '.html']
     const ext = path.extname(file.originalname).toLowerCase()
     if (allowed.includes(ext)) {
       cb(null, true)
