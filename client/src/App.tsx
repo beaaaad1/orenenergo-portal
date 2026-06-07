@@ -66,7 +66,7 @@ const AppRoutes = () => {
             <Route path="/print" element={<PrivateRoute><PrintPage /></PrivateRoute>} />
             <Route path="/profile/:id" element={<PrivateRoute><UserProfileDetail /></PrivateRoute>} />
             <Route path="/news/:id" element={<NewsDetail />} />
-            <Route path="/support" element={<PrivateRoute><SupportChat /></PrivateRoute>} />
+            <Route path="/support" element={<SupportChat />} />
             <Route path="/admin/support" element={<PrivateRoute><AdminSupport /></PrivateRoute>} />
 
             <Route path="/ExternalRequestsPage" element={<PrivateRoute><ExternalRequestsPage /></PrivateRoute>} />

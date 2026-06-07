@@ -275,7 +275,7 @@ const DashboardPage = () => {
                       e.currentTarget.style.boxShadow = 'none';
                   }}
               >
-                  <div style={{fontSize: 24, marginBottom: 8}}>💼</div>
+                  <div style={{fontSize: 24, marginBottom: 8}}>📃</div>
                   <div style={{fontWeight: 600, color: '#1A2B3C', fontSize: 14}}>Договоры и услуги</div>
                   <div style={{fontSize: 12, color: '#8A9BB0', marginTop: 4}}>
                       Учет заявок на подключение света и генерация договоров

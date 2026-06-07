@@ -143,7 +143,7 @@ const LightingServicePage = () => {
               className="btn btn-link p-0 text-decoration-none"
               style={{ color: '#0057A8', fontWeight: 500 }}
             >
-              ← Вернуться в伴нель договоров
+              ← Вернуться в панель договоров
             </button>
           </div>
 

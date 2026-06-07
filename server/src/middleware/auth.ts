@@ -10,7 +10,6 @@ export interface AuthRequest extends Request {
 
 const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1]
-
   if (!token) {
     res.status(401).json({ message: 'Нет токена, доступ запрещён' })
     return
