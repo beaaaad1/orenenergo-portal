@@ -44,7 +44,7 @@ async def chat(request: ChatRequest):
             history = [{"role": "user", "content": request.message}]
 
         response = client.chat.completions.create(
-            model="openrouter/auto",
+            model="openai/gpt-4o-mini",
             messages=[
                 {"role": "system", "content": """
 Ты — официальный интеллектуальный помощник портала ПАО Россети Волга (Оренбургэнерго).
@@ -58,6 +58,9 @@ async def chat(request: ChatRequest):
                 *history
             ]
         )
+        print("MODEL IS ACTIVE: gpt-4o-mini")
+        print("FULL RESPONSE:")
+        print(response)
 
         reply = response.choices[0].message.content
         print(f"Ответ от ИИ: {reply}")
